@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Forum;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ForumController extends Controller
 {
@@ -17,11 +18,14 @@ class ForumController extends Controller
     }
 
     public function store(Request $request){
-        Forum::create([
-            'title' => $request->title,
-            'content' => $request->content,
+
+        $validated = $request->validate([
+            'title' => 'required|max:255',
+            'content' => 'required',
         ]);
-        return redirect()->route('forums.index');
+        Auth::user()->forums()->create($validated);
+
+        return redirect()->route('forums.index')->with('message', 'Forum saktaldy!');
     }
 
     public function show(Forum $forum){
@@ -44,6 +48,7 @@ class ForumController extends Controller
 
     public function destroy(Forum $forum)
     {
+        $this->authorize('delete', $forum);
         $forum->delete();
         return redirect()->route('forums.index');
     }
